@@ -14,14 +14,14 @@ The algorithm is inspired by the structure of EBNF itself, meaning in order to p
 
 The following features are planned for certain versions:
 
-- **v0.1**\n
+- **v0.1**\
   Parsing of simple arithmetic expressions as described in `doc/v0.1.ebnf`. The goal here is to setup the needed helper functions, unit tests and get used to everything.
 
-- **v0.2**\n
+- **v0.2**\
   Before progressing to the code generation part, the grammer is extended to support compound (parenthsized) expressions and simple builtin function calls (i.e. `sin()`, `cos()`, `tan()`). If there are any major flaws with the current approach those should be detected in this stage.
 
-- **v0.3**\n
+- **v0.3**\
   For this version the error reporting should be improved as it is kind of non-existent by now. The report should consist of the line and column number of the error encountered as well as a sensible error message.
 
-- **v0.4**\n
+- **v0.4**\
   By now a simple code generator should be implemented for the given syntax. Most probably the output will be in C++ or any other high level language. Code generators for assembler or LLVM-IL may be added later on.
