@@ -1,0 +1,12 @@
+{
+    "[cpp]": {
+        "editor.formatOnSave": true,
+        "editor.formatOnPaste": true,
+        "editor.formatOnType": true
+    },
+    "[cmake]": {
+        "editor.formatOnSave": true,
+        "editor.formatOnPaste": true,
+        "editor.formatOnType": true
+    }
+}
