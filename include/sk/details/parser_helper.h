@@ -42,6 +42,7 @@ namespace sk::parser::helper {
                 return *good;
             }
 
+            // A failed parsing attempt does not change the string
             return GoodParseResult {
                 .remaining = s  //
             };
@@ -53,11 +54,10 @@ namespace sk::parser::helper {
         //
 
         template<typename Parser>
-        ParseResult repeated(const std::string_view s, Parser &&p, size_t min, size_t max) {
+        ParseResult repeated(const std::string_view s, Parser &&p, const size_t min, const size_t max) {
             types::ParseState state;
             state.remaining = s;
 
-            std::string_view current_view {s};
             size_t counter {0};
 
             // Apply the given parser as often as possible
@@ -102,7 +102,8 @@ namespace sk::parser::helper {
 
         template<typename Parser, typename... RemParser>
         ParseResult one_of(const std::string_view s, Parser &&p, RemParser... remParser) {
-            // Apply
+            // Apply one parser after another until at least one returned with a good result.
+            // Otherwise an error is returned.
             const auto res {p(s)};
             if (const auto good {std::get_if<GoodParseResult>(&res)}) {
                 return *good;
@@ -123,14 +124,17 @@ namespace sk::parser::helper {
         template<typename Parser, typename... RemParser>
         std::optional<BadParseResult> all_of_impl(const std::string_view s, types::ParseState &state, Parser &&p,
                                                   RemParser... remParser) {
+            // Apply a parser and return an error if it fails.
             const auto res {p(s)};
             if (const auto bad {std::get_if<BadParseResult>(&res)}) {
                 return *bad;
             }
 
+            // Collect all good results
             const auto good {std::get<GoodParseResult>(res)};
             state.addResult(good);
 
+            // Apply remaining parsers or break out of the recursion
             if constexpr (sizeof...(remParser) > 0) {
                 return all_of_impl(good.remaining, state, remParser...);
             } else {
@@ -158,6 +162,10 @@ namespace sk::parser::helper {
     }  // namespace detail
 
 
+    //
+    // Parser combinator operators
+    //
+
     template<typename Parser>
     auto optional(Parser parser) {
         return [=](const std::string_view &s) {
@@ -180,9 +188,28 @@ namespace sk::parser::helper {
     }
 
     template<typename Parser>
-    auto repeated(Parser &&parser, size_t min = 0, size_t max = 0) {
+    auto repeated(Parser &&parser, const size_t min = 0, const size_t max = 0) {
         return [=](const std::string_view &s) {
             return detail::repeated(s, parser, min, max);
+        };
+    }
+
+
+    //
+    // Misc helpers
+    //
+
+    GoodParseResult pass(const std::string_view s, const Token token, const size_t nrOfChars) {
+        return GoodParseResult {
+            .token     = token,                   //
+            .result    = s.substr(0, nrOfChars),  //
+            .remaining = s.substr(nrOfChars)      //
+        };
+    }
+
+    BadParseResult fail(const std::string_view msg) {
+        return BadParseResult {
+            .msg = msg  //
         };
     }
 

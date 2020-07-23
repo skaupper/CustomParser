@@ -3,7 +3,6 @@
 
 #include <optional>
 #include <string_view>
-#include <tuple>
 #include <variant>
 #include <vector>
 
@@ -22,18 +21,18 @@ namespace sk::parser {
         };
 
         struct BadParseResult {
-            std::string msg;
+            std::string_view msg;
         };
 
-        using ParseResult      = std::variant<GoodParseResult, BadParseResult>;
-        using TupleParseResult = std::tuple<std::optional<GoodParseResult>, std::optional<BadParseResult>>;
+        using ParseResult = std::variant<GoodParseResult, BadParseResult>;
 
-        using parse_fun_t = ParseResult (*)(const std::string_view);
+        using parse_fun_t = ParseResult(const std::string_view);
 
     }  // namespace types
 
 
     // -----------------------------------------------------------------------------------------------------------------
+
 
     //
     // Terminal parsers
