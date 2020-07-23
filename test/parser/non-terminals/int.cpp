@@ -20,10 +20,6 @@ TEST_CASE("Integer symbols.", "[parser][parser.non-terminals][parser.non-termina
     REQUIRE(is_good(parse_int("+0")));
 
     // Signs with remainder and advanced checks
-
-    // TODO: This should produce 24 tokens (one for each digit and one for the sign)
-    // but there are only 3, since the tree still has a
-    // separate node for the `repeated` in it, which should be flattened out
     auto res {get_good(parse_int("+12345678910111213141516 12345"))};
     REQUIRE(res.result == "+12345678910111213141516");
     REQUIRE(res.remaining == " 12345");
@@ -37,7 +33,7 @@ TEST_CASE("Integer symbols.", "[parser][parser.non-terminals][parser.non-termina
         }
     }
 
-    res = get_good(parse_sign("0011.ABC"));
+    res = get_good(parse_int("0011.ABC"));
     REQUIRE(res.result == "0011");
     REQUIRE(res.remaining == ".ABC");
     REQUIRE(res.token == Token::INTEGER);

@@ -17,9 +17,13 @@ namespace sk::parser::helper {
             std::string_view remaining;
 
             void addResult(const GoodParseResult &r) {
-                goodResults.push_back(r);
-                resultStrLength += std::size(r.result);
-                remaining = r.remaining;
+                if (!r.token) {
+                    std::for_each(std::cbegin(r.children), std::cend(r.children), [&](const auto &e) { addResult(e); });
+                } else {
+                    goodResults.push_back(r);
+                    resultStrLength += std::size(r.result);
+                    remaining = r.remaining;
+                }
             }
         };
 
@@ -145,21 +149,19 @@ namespace sk::parser::helper {
         //
 
         template<typename Parser, typename... RemParser>
-        std::optional<BadParseResult> all_of_impl(const std::string_view s, types::ParseState &state, Parser &&p,
-                                                  RemParser... remParser) {
+        std::optional<BadParseResult> all_of_impl(types::ParseState &state, Parser &&p, RemParser... remParser) {
             // Apply a parser and return an error if it fails.
-            const auto res {p(s)};
+            const auto res {p(state.remaining)};
             if (const auto bad {std::get_if<BadParseResult>(&res)}) {
                 return *bad;
             }
 
             // Collect all good results
-            const auto good {std::get<GoodParseResult>(res)};
-            state.addResult(good);
+            state.addResult(std::get<GoodParseResult>(res));
 
             // Apply remaining parsers or break out of the recursion
             if constexpr (sizeof...(remParser) > 0) {
-                return all_of_impl(good.remaining, state, remParser...);
+                return all_of_impl(state, remParser...);
             } else {
                 return std::nullopt;
             }
@@ -169,7 +171,9 @@ namespace sk::parser::helper {
         template<typename... Parser>
         ParseResult all_of(const std::string_view s, const Token token, Parser... parser) {
             types::ParseState state;
-            if (const auto bad {all_of_impl(s, state, parser...)}) {
+            state.remaining = s;
+
+            if (const auto bad {all_of_impl(state, parser...)}) {
                 return *bad;
             }
 
