@@ -3,9 +3,8 @@
 #include "utils/parser.h"
 
 
-TEST_CASE("Test case for parsing arithmetic operator symbols.",
-          "[parser][parser.terminals][parser.terminals.arith_op]") {
-    // Obviously no signs
+TEST_CASE("Arithmetic operator symbols.", "[parser][parser.terminals][parser.terminals.arith_op]") {
+    // Obviously wrong
     REQUIRE(!is_good(parse_arith_op("^* asdfw")));
     REQUIRE(!is_good(parse_arith_op("$/--")));
     REQUIRE(!is_good(parse_arith_op("(a+++")));

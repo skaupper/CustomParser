@@ -2,6 +2,7 @@
 #define SK_LIB_UTILS_H
 
 #include <array>
+#include <ostream>
 #include <type_traits>
 
 
@@ -78,6 +79,21 @@ constexpr auto concat(const std::array<T, N1> &a1, const std::array<T, N2> &a2) 
     }
 
     return arr;
+}
+
+
+//
+// operator<< overloadings
+//
+
+template<typename T>
+inline std::ostream &operator<<(std::ostream &out, const std::optional<T> &opt) {
+    if (!opt) {
+        out << "<empty>";
+    } else {
+        out << opt.value();
+    }
+    return out;
 }
 
 #endif

@@ -3,7 +3,7 @@
 #include "utils/parser.h"
 
 
-TEST_CASE("Test case for parsing sign symbols.", "[parser][parser.terminals][parser.terminals.sign]") {
+TEST_CASE("Sign symbols.", "[parser][parser.terminals][parser.terminals.sign]") {
     // Obviously no signs
     REQUIRE(!is_good(parse_sign("* asdfw")));
     REQUIRE(!is_good(parse_sign("/--")));
@@ -11,7 +11,7 @@ TEST_CASE("Test case for parsing sign symbols.", "[parser][parser.terminals][par
     REQUIRE(!is_good(parse_sign("0aa")));
     REQUIRE(!is_good(parse_sign("\n0aa")));
 
-    // Basic signs without remainder
+    // Basic tests without remainder
     REQUIRE(is_good(parse_sign("+")));
     REQUIRE(is_good(parse_sign("-")));
 

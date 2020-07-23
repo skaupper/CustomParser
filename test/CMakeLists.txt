@@ -9,7 +9,13 @@ add_library(catch_main STATIC catch_main.cpp)
 target_link_libraries(catch_main PUBLIC CONAN_PKG::catch2 CONAN_PKG::spdlog)
 target_link_libraries(catch_main PRIVATE project_warnings project_options)
 
-add_executable(parser_tests parser/terminals/sign.cpp parser/terminals/digit.cpp parser/terminals/arith_op.cpp)
+add_executable(
+    parser_tests
+    parser/terminals/sign.cpp
+    parser/terminals/digit.cpp
+    parser/terminals/arith_op.cpp
+    parser/non-terminals/int.cpp
+    parser/non-terminals/arith_expr.cpp)
 target_link_libraries(
     parser_tests
     PRIVATE project_warnings

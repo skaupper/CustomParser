@@ -2,6 +2,7 @@
 #define SK_LIB_PARSER_H
 
 #include <optional>
+#include <ostream>
 #include <string_view>
 #include <variant>
 #include <vector>
@@ -11,10 +12,16 @@ namespace sk::parser {
 
     namespace types {
 
-        enum class Token { UNKNOWN, SIGN, DIGIT, INTEGER, ARITH_OP, ARITH_EXPR };
+        enum class Token {
+            SIGN,       //
+            DIGIT,      //
+            INTEGER,    //
+            ARITH_OP,   //
+            ARITH_EXPR  //
+        };
 
         struct GoodParseResult {
-            Token token {Token::UNKNOWN};
+            std::optional<Token> token {};
             std::string_view result {};
             std::vector<GoodParseResult> children {};
             std::string_view remaining;
@@ -51,5 +58,16 @@ namespace sk::parser {
     types::ParseResult parse_arith_expr(const std::string_view s);
 
 }  // namespace sk::parser
+
+
+//
+// operator<< overloadings
+//
+
+inline std::ostream &operator<<(std::ostream &out, const sk::parser::types::Token token) {
+    out << static_cast<std::underlying_type_t<decltype(token)>>(token);
+    return out;
+}
+
 
 #endif

@@ -3,8 +3,8 @@
 #include "utils/parser.h"
 
 
-TEST_CASE("Test case for parsing digit symbols.", "[parser][parser.terminals][parser.terminals.digit]") {
-    // Obviously no signs
+TEST_CASE("Digit symbols.", "[parser][parser.terminals][parser.terminals.digit]") {
+    // Obviously wrong
     REQUIRE(!is_good(parse_digit("* asdfw")));
     REQUIRE(!is_good(parse_digit("/--")));
     REQUIRE(!is_good(parse_digit("a+++")));
@@ -14,7 +14,7 @@ TEST_CASE("Test case for parsing digit symbols.", "[parser][parser.terminals][pa
     REQUIRE(!is_good(parse_digit("B")));
     REQUIRE(!is_good(parse_digit("-1")));
 
-    // Basic signs without remainder
+    // Basic tests without remainder
     REQUIRE(is_good(parse_digit("0")));
     REQUIRE(is_good(parse_digit("1")));
     REQUIRE(is_good(parse_digit("3")));

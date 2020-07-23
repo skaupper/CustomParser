@@ -29,6 +29,39 @@ namespace sk::parser::helper {
     // -----------------------------------------------------------------------------------------------------------------
 
 
+    //
+    // Misc helpers
+    //
+
+    GoodParseResult pass(const std::string_view s, const size_t nrOfChars,
+                         const std::optional<Token> token = std::nullopt) {
+        return GoodParseResult {
+            .token     = token,                   //
+            .result    = s.substr(0, nrOfChars),  //
+            .remaining = s.substr(nrOfChars)      //
+        };
+    }
+
+    GoodParseResult pass(const std::string_view s, const types::ParseState &state,
+                         const std::optional<Token> token = std::nullopt) {
+        return GoodParseResult {
+            .token     = token,                               //
+            .result    = s.substr(0, state.resultStrLength),  //
+            .children  = state.goodResults,                   //
+            .remaining = state.remaining                      //
+        };
+    }
+
+    BadParseResult fail(const std::string_view msg) {
+        return BadParseResult {
+            .msg = msg  //
+        };
+    }
+
+
+    // -----------------------------------------------------------------------------------------------------------------
+
+
     namespace detail {
 
         //
@@ -43,9 +76,7 @@ namespace sk::parser::helper {
             }
 
             // A failed parsing attempt does not change the string
-            return GoodParseResult {
-                .remaining = s  //
-            };
+            return pass(s, 0);
         }
 
 
@@ -72,9 +103,7 @@ namespace sk::parser::helper {
                 // If max == 0, there is no upper limit.
                 counter++;
                 if (counter > max && max != 0) {
-                    return BadParseResult {
-                        .msg = "repeated: Exceeded maximum"  //
-                    };
+                    return fail("repeated: Exceeded maximum");
                 }
 
                 state.addResult(std::get<GoodParseResult>(res));
@@ -83,16 +112,10 @@ namespace sk::parser::helper {
             // If the parser applied less often than the minimum required amount,
             // fail with an error.
             if (counter < min) {
-                return BadParseResult {
-                    .msg = "repeated: Subceeded minimum"  //
-                };
+                return fail("repeated: Subceeded minimum");
             }
 
-            return GoodParseResult {
-                .result    = s.substr(0, state.resultStrLength),  //
-                .children  = state.goodResults,                   //
-                .remaining = state.remaining                      //
-            };
+            return pass(s, state);
         }
 
 
@@ -150,12 +173,7 @@ namespace sk::parser::helper {
                 return *bad;
             }
 
-            return GoodParseResult {
-                .token     = token,                               //
-                .result    = s.substr(0, state.resultStrLength),  //
-                .children  = state.goodResults,                   //
-                .remaining = state.remaining                      //
-            };
+            return pass(s, state, token);
         }
 
 
@@ -191,25 +209,6 @@ namespace sk::parser::helper {
     auto repeated(Parser &&parser, const size_t min = 0, const size_t max = 0) {
         return [=](const std::string_view &s) {
             return detail::repeated(s, parser, min, max);
-        };
-    }
-
-
-    //
-    // Misc helpers
-    //
-
-    GoodParseResult pass(const std::string_view s, const Token token, const size_t nrOfChars) {
-        return GoodParseResult {
-            .token     = token,                   //
-            .result    = s.substr(0, nrOfChars),  //
-            .remaining = s.substr(nrOfChars)      //
-        };
-    }
-
-    BadParseResult fail(const std::string_view msg) {
-        return BadParseResult {
-            .msg = msg  //
         };
     }
 

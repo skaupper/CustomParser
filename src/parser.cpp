@@ -29,7 +29,7 @@ namespace sk::parser {
         }
 
         spdlog::debug("Sign: {}; s: {}", c, s);
-        return pass(s, Token::SIGN, 1);
+        return pass(s, 1, Token::SIGN);
     }
 
     ParseResult parse_digit(const std::string_view s) {
@@ -46,7 +46,7 @@ namespace sk::parser {
         }
 
         spdlog::debug("Digit: {}; s: {}", c, s);
-        return pass(s, Token::DIGIT, 1);
+        return pass(s, 1, Token::DIGIT);
     }
 
     ParseResult parse_arith_op(const std::string_view s) {
@@ -62,7 +62,7 @@ namespace sk::parser {
         for (const auto &op : AVAILABLE_OPS) {
             if (s.starts_with(op)) {
                 spdlog::debug("Matched op: {:2}; s: {}", op, s);
-                return pass(s, Token::ARITH_OP, std::size(op));
+                return pass(s, std::size(op), Token::ARITH_OP);
             }
 
             spdlog::debug("Failed op: {:2}; s: {}", op, s);
