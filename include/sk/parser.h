@@ -33,8 +33,6 @@ namespace sk::parser {
 
         using ParseResult = std::variant<GoodParseResult, BadParseResult>;
 
-        using parse_fun_t = ParseResult(const std::string_view);
-
     }  // namespace types
 
 
