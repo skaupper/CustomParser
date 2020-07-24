@@ -37,19 +37,26 @@ namespace sk::parser::helper {
     // Misc helpers
     //
 
+    std::optional<Token> to_opt_token(const Token token) {
+        if (token == Token::RESERVED_UNKNOWN) {
+            return std::nullopt;
+        }
+        return token;
+    }
+
     GoodParseResult pass(const std::string_view s, const size_t nrOfChars,
-                         const std::optional<Token> token = std::nullopt) {
+                         const Token token = Token::RESERVED_UNKNOWN) {
         return GoodParseResult {
-            .token     = token,                   //
+            .token     = to_opt_token(token),     //
             .result    = s.substr(0, nrOfChars),  //
             .remaining = s.substr(nrOfChars)      //
         };
     }
 
     GoodParseResult pass(const std::string_view s, const types::ParseState &state,
-                         const std::optional<Token> token = std::nullopt) {
+                         const Token token = Token::RESERVED_UNKNOWN) {
         return GoodParseResult {
-            .token     = token,                               //
+            .token     = to_opt_token(token),                 //
             .result    = s.substr(0, state.resultStrLength),  //
             .children  = state.goodResults,                   //
             .remaining = state.remaining                      //
@@ -169,7 +176,7 @@ namespace sk::parser::helper {
 
 
         template<typename... Parser>
-        ParseResult all_of(const std::string_view s, const Token token, Parser... parser) {
+        ParseResult all_of(const std::string_view s, Parser... parser) {
             types::ParseState state;
             state.remaining = s;
 
@@ -177,9 +184,20 @@ namespace sk::parser::helper {
                 return *bad;
             }
 
-            return pass(s, state, token);
+            return pass(s, state);
         }
 
+        template<Token TOKEN>
+        ParseResult change_token(ParseResult &&res) {
+            if constexpr (TOKEN == Token::RESERVED_UNKNOWN) {
+                return res;
+            } else if (auto good {std::get_if<GoodParseResult>(&res)}) {
+                good->token = TOKEN;
+                return res;
+            } else {
+                return res;
+            }
+        }
 
     }  // namespace detail
 
@@ -188,31 +206,31 @@ namespace sk::parser::helper {
     // Parser combinator operators
     //
 
-    template<typename Parser>
+    template<Token TOKEN = Token::RESERVED_UNKNOWN, typename Parser>
     auto optional(Parser parser) {
         return [=](const std::string_view &s) {
-            return detail::optional(s, parser);
+            return detail::change_token<TOKEN>(detail::optional(s, parser));
         };
     }
 
-    template<typename... Parser>
+    template<Token TOKEN = Token::RESERVED_UNKNOWN, typename... Parser>
     auto one_of(Parser... parser) {
         return [=](const std::string_view &s) {
-            return detail::one_of(s, parser...);
+            return detail::change_token<TOKEN>(detail::one_of(s, parser...));
         };
     }
 
-    template<typename... Parser>
-    auto all_of(const Token token, Parser... parser) {
+    template<Token TOKEN = Token::RESERVED_UNKNOWN, typename... Parser>
+    auto all_of(Parser... parser) {
         return [=](const std::string_view &s) {
-            return detail::all_of(s, token, parser...);
+            return detail::change_token<TOKEN>(detail::all_of(s, parser...));
         };
     }
 
-    template<typename Parser>
+    template<Token TOKEN = Token::RESERVED_UNKNOWN, typename Parser>
     auto repeated(Parser &&parser, const size_t min = 0, const size_t max = 0) {
         return [=](const std::string_view &s) {
-            return detail::repeated(s, parser, min, max);
+            return detail::change_token<TOKEN>(detail::repeated(s, parser, min, max));
         };
     }
 

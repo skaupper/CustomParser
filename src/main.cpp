@@ -51,7 +51,7 @@ int main() {
     // TODO: This should produce 23 tokens (one for each digit)
     // but there are only 3, since the tree still has a
     // separate node for the `repeated` in it, which should be flattened out
-    try_parse("12345678910111213141516 12345", parse_int);
+    try_parse("12345678910111213141516 12345", parse_integer);
 
     // try_parse("1+1"sv);
     // try_parse("-1*55"sv);

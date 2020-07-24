@@ -14,7 +14,7 @@ add_executable(
     parser/terminals/sign.cpp
     parser/terminals/digit.cpp
     parser/terminals/arith_op.cpp
-    parser/non-terminals/int.cpp
+    parser/non-terminals/integer.cpp
     parser/non-terminals/arith_expr.cpp)
 target_link_libraries(
     parser_tests

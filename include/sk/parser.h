@@ -13,11 +13,25 @@ namespace sk::parser {
     namespace types {
 
         enum class Token {
-            SIGN,       //
-            DIGIT,      //
-            INTEGER,    //
-            ARITH_OP,   //
-            ARITH_EXPR  //
+            RESERVED_UNKNOWN,  //
+            END_OF_FILE,       //
+            LETTER,            //
+            SIGN,              //
+            DIGIT,             //
+            ARITH_OP,          //
+            LPAREN,            //
+            RPAREN,            //
+            COMMA,             //
+            UNDERSCORE,        //
+            IDENTIFIER,        //
+            INTEGER,           //
+            PARAMS,            //
+            FUNCTION_CALL,     //
+            ARITH_EXPR,        //
+            COMPOUND_EXPR,     //
+            RVALUE,            //
+            EXPR,              //
+            PROGRAM            //
         };
 
         struct GoodParseResult {
@@ -43,17 +57,30 @@ namespace sk::parser {
     // Terminal parsers
     //
 
-    types::ParseResult parse_sign(const std::string_view s);
+    types::ParseResult parse_eof(const std::string_view s);
+    types::ParseResult parse_letter(const std::string_view s);
     types::ParseResult parse_digit(const std::string_view s);
+    types::ParseResult parse_sign(const std::string_view s);
     types::ParseResult parse_arith_op(const std::string_view s);
+    types::ParseResult parse_lparen(const std::string_view s);
+    types::ParseResult parse_rparen(const std::string_view s);
+    types::ParseResult parse_comma(const std::string_view s);
+    types::ParseResult parse_underscore(const std::string_view s);
 
 
     //
     // Non-terminal parsers
     //
 
-    types::ParseResult parse_int(const std::string_view s);
+    types::ParseResult parse_integer(const std::string_view s);
+    types::ParseResult parse_identifier(const std::string_view s);
+    types::ParseResult parse_params(const std::string_view s);
+    types::ParseResult parse_function_call(const std::string_view s);
     types::ParseResult parse_arith_expr(const std::string_view s);
+    types::ParseResult parse_compound_expr(const std::string_view s);
+    types::ParseResult parse_rvalue(const std::string_view s);
+    types::ParseResult parse_expr(const std::string_view s);
+    types::ParseResult parse_program(const std::string_view s);
 
 }  // namespace sk::parser
 

@@ -5,22 +5,22 @@
 
 TEST_CASE("Integer symbols.", "[parser][parser.non-terminals][parser.non-terminals.integer]") {
     // Obviously wrong
-    REQUIRE(!is_good(parse_int("* asdfw")));
-    REQUIRE(!is_good(parse_int("/--")));
-    REQUIRE(!is_good(parse_int("a+++")));
-    REQUIRE(!is_good(parse_int("bfeaa")));
-    REQUIRE(!is_good(parse_int("%%§$\n0aa")));
+    REQUIRE(!is_good(parse_integer("* asdfw")));
+    REQUIRE(!is_good(parse_integer("/--")));
+    REQUIRE(!is_good(parse_integer("a+++")));
+    REQUIRE(!is_good(parse_integer("bfeaa")));
+    REQUIRE(!is_good(parse_integer("%%§$\n0aa")));
 
     // Basic tests without remainder
-    REQUIRE(is_good(parse_int("+12345")));
-    REQUIRE(is_good(parse_int("987654")));
-    REQUIRE(is_good(parse_int("-987654")));
-    REQUIRE(is_good(parse_int("0")));
-    REQUIRE(is_good(parse_int("-0")));
-    REQUIRE(is_good(parse_int("+0")));
+    REQUIRE(is_good(parse_integer("+12345")));
+    REQUIRE(is_good(parse_integer("987654")));
+    REQUIRE(is_good(parse_integer("-987654")));
+    REQUIRE(is_good(parse_integer("0")));
+    REQUIRE(is_good(parse_integer("-0")));
+    REQUIRE(is_good(parse_integer("+0")));
 
     // Signs with remainder and advanced checks
-    auto res {get_good(parse_int("+12345678910111213141516 12345"))};
+    auto res {get_good(parse_integer("+12345678910111213141516 12345"))};
     REQUIRE(res.result == "+12345678910111213141516");
     REQUIRE(res.remaining == " 12345");
     REQUIRE(res.token == Token::INTEGER);
@@ -33,7 +33,7 @@ TEST_CASE("Integer symbols.", "[parser][parser.non-terminals][parser.non-termina
         }
     }
 
-    res = get_good(parse_int("0011.ABC"));
+    res = get_good(parse_integer("0011.ABC"));
     REQUIRE(res.result == "0011");
     REQUIRE(res.remaining == ".ABC");
     REQUIRE(res.token == Token::INTEGER);

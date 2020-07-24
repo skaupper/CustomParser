@@ -1,6 +1,27 @@
-ArithExpr = Integer, ArithOp, Integer;
+Program = Expr, Eof;
+
+Expr = CompoundExpr | ArithExpr;
+RValue = Integer | FunctionCall | Expr;
+
+CompoundExpr = LParen, ArithExpr, RParen;
+ArithExpr = RValue, ArithOp, RValue;
+
+FunctionCall = Identifier, LParen, Params, RParen;
+Params = RValue, {Comma, RValue};
+
+Identifier = Letter, {Underscore | Letter};
 Integer = [Sign], Digit, {Digit};
 
-ArithOp = "+" | "-" | "*" | "/";
+Underscore = "_";
+Comma = ",";
+LParen = "(";
+RParen = ")";
+ArithOp = "+" | "-" | "*" | "/" | "";
 Sign = "+" | "-";
 Digit = "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9" | "0";
+Letter = "A" | "B" | "C" | "D" | "E" | "F" | "G" | "H" | "I" | "J" | "K" | "L" | "M" |
+         "N" | "O" | "P" | "Q" | "R" | "S" | "T" | "U" | "V" | "W" | "X" | "Y" | "Z" |
+         "a" | "b" | "c" | "d" | "e" | "f" | "g" | "h" | "i" | "j" | "k" | "l" | "m" |
+         "n" | "o" | "p" | "q" | "r" | "s" | "t" | "u" | "v" | "w" | "x" | "y" | "z";
+
+Eof = ?EOF?;
