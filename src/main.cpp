@@ -25,14 +25,15 @@ using namespace std::literals::string_view_literals;
 template<typename Parser>
 void try_parse(const std::string_view s, Parser &&parse = parse_arith_expr) {
     std::cout << "Try parsing string: '" << s << "'" << std::endl;
+    std::vector<sk::parser::types::ParseStackEntry> bt;
 
-    const auto res {parse(s)};
+    const auto res {parse(s, bt)};
 
     if (const auto good {std::get_if<0>(&res)}) {
         std::cout << "Tokens: ";
         for (const auto &child : good->children) {
-            std::cout << child.token << " ";
-            // std::cout << child.result << "\t";
+            // std::cout << child.token << " ";
+            std::cout << "'" << child.result << "' ";
         }
         std::cout << std::endl;
 
@@ -51,7 +52,9 @@ int main() {
     // TODO: This should produce 23 tokens (one for each digit)
     // but there are only 3, since the tree still has a
     // separate node for the `repeated` in it, which should be flattened out
-    try_parse("12345678910111213141516 12345", parse_integer);
+    // try_parse("1234567891 12345", parse_integer);
+    // try_parse("1+1", parse_arith_expr);
+    try_parse("1324* asdfw", parse_arith_expr);
 
     // try_parse("1+1"sv);
     // try_parse("-1*55"sv);

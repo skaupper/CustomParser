@@ -5,22 +5,22 @@
 
 TEST_CASE("Integer symbols.", "[parser][parser.non-terminals][parser.non-terminals.integer]") {
     // Obviously wrong
-    REQUIRE(!is_good(parse_integer("* asdfw")));
-    REQUIRE(!is_good(parse_integer("/--")));
-    REQUIRE(!is_good(parse_integer("a+++")));
-    REQUIRE(!is_good(parse_integer("bfeaa")));
-    REQUIRE(!is_good(parse_integer("%%§$\n0aa")));
+    REQUIRE(!is_good(call_parser(parse_integer, "* asdfw"sv)));
+    REQUIRE(!is_good(call_parser(parse_integer, "/--"sv)));
+    REQUIRE(!is_good(call_parser(parse_integer, "a+++"sv)));
+    REQUIRE(!is_good(call_parser(parse_integer, "bfeaa"sv)));
+    REQUIRE(!is_good(call_parser(parse_integer, "%%§$\n0aa"sv)));
 
     // Basic tests without remainder
-    REQUIRE(is_good(parse_integer("+12345")));
-    REQUIRE(is_good(parse_integer("987654")));
-    REQUIRE(is_good(parse_integer("-987654")));
-    REQUIRE(is_good(parse_integer("0")));
-    REQUIRE(is_good(parse_integer("-0")));
-    REQUIRE(is_good(parse_integer("+0")));
+    REQUIRE(is_good(call_parser(parse_integer, "+12345"sv)));
+    REQUIRE(is_good(call_parser(parse_integer, "987654"sv)));
+    REQUIRE(is_good(call_parser(parse_integer, "-987654"sv)));
+    REQUIRE(is_good(call_parser(parse_integer, "0"sv)));
+    REQUIRE(is_good(call_parser(parse_integer, "-0"sv)));
+    REQUIRE(is_good(call_parser(parse_integer, "+0"sv)));
 
     // Signs with remainder and advanced checks
-    auto res {get_good(parse_integer("+12345678910111213141516 12345"))};
+    auto res {get_good(call_parser(parse_integer, "+12345678910111213141516 12345"sv))};
     REQUIRE(res.result == "+12345678910111213141516");
     REQUIRE(res.remaining == " 12345");
     REQUIRE(res.token == Token::INTEGER);
@@ -33,7 +33,7 @@ TEST_CASE("Integer symbols.", "[parser][parser.non-terminals][parser.non-termina
         }
     }
 
-    res = get_good(parse_integer("0011.ABC"));
+    res = get_good(call_parser(parse_integer, "0011.ABC"sv));
     REQUIRE(res.result == "0011");
     REQUIRE(res.remaining == ".ABC");
     REQUIRE(res.token == Token::INTEGER);
