@@ -1,13 +1,12 @@
-#ifndef SK_LIB_SCANNER_BUFFERED_INPUT_H
-#define SK_LIB_SCANNER_BUFFERED_INPUT_H
+#ifndef SK_LIB_UTILS_BUFFERED_INPUT_H
+#define SK_LIB_UTILS_BUFFERED_INPUT_H
 
 #include <optional>
 #include <sstream>
 
-#include <spdlog/spdlog.h>
 
+namespace sk::utils {
 
-namespace sk::scanner::types {
     namespace detail {
 
         class string_stream final {
@@ -44,13 +43,14 @@ namespace sk::scanner::types {
 
 
         std::streamsize buffer_size() const;
+        bool eof() const;
 
-        std::optional<char> get_char();
+        std::optional<int> get_char();
         std::optional<std::string> remove_string_from_buffer(std::streamsize amount = -1);
 
         void putback_buffer();
     };
 
-}  // namespace sk::scanner::types
+}  // namespace sk::utils
 
 #endif

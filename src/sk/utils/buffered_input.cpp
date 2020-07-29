@@ -1,7 +1,9 @@
-#include "sk/scanner/buffered_input.h"
+#include "sk/utils/buffered_input.h"
+
+#include <spdlog/spdlog.h>
 
 
-namespace sk::scanner::types {
+namespace sk::utils {
 
     namespace detail {
         std::streamsize string_stream::size() const { return size_; }
@@ -77,8 +79,10 @@ namespace sk::scanner::types {
 
     std::streamsize buffered_input::buffer_size() const { return alreadyReadBuffer_->size(); }
 
+    bool buffered_input::eof() const { return input_.eof(); }
 
-    std::optional<char> buffered_input::get_char() {
+
+    std::optional<int> buffered_input::get_char() {
         if (putbackBuffer_->size() > 0) {
             auto optChar {putbackBuffer_->get_char()};
             if (optChar) {
@@ -87,16 +91,17 @@ namespace sk::scanner::types {
                 spdlog::error("buffered_input::get_char: putbackBuffer_ did not return a character although its "
                               "size is != 0.");
             }
-            return optChar;
+            return *optChar;
         }
 
         char c;
         if (!input_.get(c)) {
             if (input_.eof()) {
                 spdlog::debug("buffered_input::get_char: EOF");
-            } else {
-                spdlog::error("buffered_input::get_char: Unable to receive character from input stream.");
+                return EOF;
             }
+
+            spdlog::error("buffered_input::get_char: Unable to receive character from input stream.");
             return std::nullopt;
         }
 
@@ -121,4 +126,4 @@ namespace sk::scanner::types {
         std::swap(alreadyReadBuffer_, putbackBuffer_);
     }
 
-}  // namespace sk::scanner::types
+}  // namespace sk::utils

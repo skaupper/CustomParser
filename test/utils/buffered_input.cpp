@@ -1,5 +1,6 @@
-#include "sk/scanner/buffered_input.h"
-#include "sk/utils.h"
+#include "sk/utils/buffered_input.h"
+#include "sk/utils/output_operators.h"
+using namespace sk::utils;
 
 #include <catch2/catch.hpp>
 
@@ -7,7 +8,6 @@
 #include <string_view>
 
 using namespace std::literals::string_view_literals;
-using namespace sk::scanner::types;
 
 
 TEST_CASE("Reading from source stream", "[scanner][scanner.buffered_input]") {
@@ -24,7 +24,10 @@ TEST_CASE("Reading from source stream", "[scanner][scanner.buffered_input]") {
     }
     REQUIRE(stream.buffer_size() == std::size(TEST_STRING));
 
-    REQUIRE(stream.get_char() == std::nullopt);
+    REQUIRE(!stream.eof());
+    REQUIRE(stream.get_char() == EOF);
+    REQUIRE(stream.eof());
+    REQUIRE(stream.get_char() == EOF);
 }
 
 
@@ -42,7 +45,7 @@ TEST_CASE("Check internal buffer", "[scanner][scanner.buffered_input]") {
     buffered_input stream(source);
 
     // Read the whole string
-    while (stream.get_char()) {
+    while (stream.get_char() && !stream.eof()) {
     }
     REQUIRE(stream.buffer_size() == std::size(TEST_STRING));
 
@@ -70,7 +73,7 @@ TEST_CASE("Check buffer putback", "[scanner][scanner.buffered_input]") {
 
 
     SECTION("Read the whole string") {
-        while (stream.get_char()) {
+        while (stream.get_char() && !stream.eof()) {
         }
         REQUIRE(stream.buffer_size() == std::size(TEST_STRING));
 
@@ -106,7 +109,7 @@ TEST_CASE("Check buffer putback", "[scanner][scanner.buffered_input]") {
 
     SECTION("Read half of the string") {
         const size_t len {std::size(TEST_STRING) / 2};
-        while (stream.get_char() && stream.buffer_size() < static_cast<std::streamsize>(len)) {
+        while (stream.get_char() && !stream.eof() && stream.buffer_size() < static_cast<std::streamsize>(len)) {
         }
         REQUIRE(stream.buffer_size() == len);
 
