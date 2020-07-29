@@ -11,6 +11,7 @@ target_link_libraries(catch_main PRIVATE project_warnings project_options)
 
 add_executable(
     parser_tests
+    scanner/buffered_input.cpp
     parser/terminals/sign.cpp
     parser/terminals/digit.cpp
     parser/terminals/arith_op.cpp
