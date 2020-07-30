@@ -51,18 +51,24 @@ using namespace std::literals::string_view_literals;
 
 
 #include "sk/scanner/defaults.h"
+#include "sk/scanner/logger.h"
+#include "sk/scanner/matchers/float_matcher.h"
 #include "sk/scanner/scanner.h"
+#include "sk/utils/logger.h"
 // #include "sk/scanner/types.h"
 
 using namespace sk::scanner::types;
 using namespace sk::scanner;
+using namespace sk::scanner::matchers;
 
 
 class op_matcher final {
     enum class State { INIT, OP, ERROR } state;
+    TokenId token_ {0};
 
 public:
-    ScanToken get_token() const { return static_cast<ScanToken>(-1); }
+    void init(token_map &tokenMap) { token_ = tokenMap.add_token("OP"); }
+    TokenId get_token() const { return token_; }
 
     StepResult step(int c) {
 
@@ -92,15 +98,26 @@ public:
 int main() {
 
     spdlog::set_level(spdlog::level::debug);
+    sk::utils::set_log_level(spdlog::level::err);
+    sk::scanner::set_log_level(spdlog::level::err);
 
 
-    scanner<op_matcher, default_matcher_t> sc;
+    // scanner<float_matcher> sc;
+    // default_scanner_t sc;
+    scanner<default_matcher_t, op_matcher> sc;
+
+    const auto tokenMap {sc.get_token_map()};
+    for (size_t i {0}; i < tokenMap.get_token_count(); ++i) {
+        std::cout << *tokenMap.resolve_token_id(i) << std::endl;
+    }
+    std::cout << std::endl;
+
 
     const auto result {sc.scan(std::cin)};
     if (const auto good {std::get_if<GoodScanResult>(&result)}) {
         for (const auto &s : *good) {
-            std::cout << "'" << s.str << "'" << std::endl;
-            // std::cout << static_cast<int>(s.token) << " ";
+            // std::cout << "'" << s.str << "'" << std::endl;
+            std::cout << s.tokenStr << " ";
         }
 
         if (std::size(*good) == 0) {
@@ -109,7 +126,9 @@ int main() {
             std::cout << std::endl;
         }
     } else {
-        std::cout << "Scanning failed" << std::endl;
+        const auto bad {std::get<BadScanResult>(result)};
+        std::cout << "Scanning failed on line " << bad.line << " at column " << bad.col << std::endl;
+        std::cout << "Unrecognized string: '" << bad.str << "'" << std::endl;
     }
 
     // char c;

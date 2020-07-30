@@ -1,6 +1,6 @@
 #include "sk/utils/container_templates.h"
 
-#include <spdlog/spdlog.h>
+#include "sk/scanner/logger.h"
 
 
 namespace sk::scanner::matchers {
@@ -10,24 +10,29 @@ namespace sk::scanner::matchers {
 
 
     template<ScanMatcher... Matchers>
+    void combined_matcher<Matchers...>::init(token_map &tokenMap) {
+        for_each_tuple(matchers_, [&](auto &matcher) { matcher.init(tokenMap); });
+    }
+
+    template<ScanMatcher... Matchers>
     StepResult combined_matcher<Matchers...>::step(int c) {
         StepResult res {StepResult::ERROR};
-        latestMatchToken_ = ScanToken::NONE;
+        latestMatchToken_ = INVALID_TOKEN;
 
 
         bool first {true};
 
-        for_each_tuple(matchers_, [&](auto &cat) {
-            const auto stepRes {cat.step(c)};
+        for_each_tuple(matchers_, [&](auto &matcher) {
+            const auto stepRes {matcher.step(c)};
             switch (stepRes) {
             case StepResult::MATCH:
                 // Only the token of the first match is interesting
                 if (first) {
                     first             = false;
-                    latestMatchToken_ = cat.get_token();
-                    if (latestMatchToken_ == ScanToken::NONE) {
-                        spdlog::error("combined_matcher::step: A token value of NONE should "
-                                      "never need to be touched");
+                    latestMatchToken_ = matcher.get_token();
+                    if (latestMatchToken_ == INVALID_TOKEN) {
+                        sk::scanner::get_logger()->error("combined_matcher::step: A token value of NONE should "
+                                                         "never need to be touched");
                     }
                 }
 

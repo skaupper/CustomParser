@@ -1,22 +1,34 @@
 #include "sk/utils/container_templates.h"
 
-#include <spdlog/spdlog.h>
+#include "sk/scanner/logger.h"
 
 
 namespace sk::scanner {
     using namespace sk::utils;
+    using namespace sk::scanner::types;
     using namespace concepts;
+
+
+    template<ScanMatcher... Matchers>
+    token_map scanner<Matchers...>::get_token_map() const {
+        return tokenMap_;
+    }
+
+    template<ScanMatcher... Matchers>
+    void scanner<Matchers...>::init_matchers() {
+        for_each_tuple(matchers_, [&](auto &matcher) { matcher.init(tokenMap_); });
+    }
 
 
     template<ScanMatcher... Matchers>
     std::optional<Symbol> scanner<Matchers...>::get_next_symbol(buffered_input &input) {
 
-        std::optional<ScanToken> acceptedToken;
+        std::optional<TokenId> acceptedToken;
         std::stringstream acceptedSymbol;
 
 
         // Reset all matchers
-        for_each_tuple(matchers_, [](auto &cat) { cat.reset(); });
+        for_each_tuple(matchers_, [](auto &matcher) { matcher.reset(); });
 
 
         bool cont;
@@ -35,8 +47,8 @@ namespace sk::scanner {
             // If any of these return a MATCH save the symbol temporarily and continue until all matcher return
             // an ERROR. At this point take the most recent MATCH (that's the longest valid symbol at this
             // point).
-            for_each_tuple(matchers_, [&](auto &cat) {
-                const auto stepRes {cat.step(c)};
+            for_each_tuple(matchers_, [&](auto &matcher) {
+                const auto stepRes {matcher.step(c)};
                 switch (stepRes) {
                 case StepResult::MATCH:
                     cont = true;
@@ -44,17 +56,24 @@ namespace sk::scanner {
                     // Only save the first match per character, this way earlier matcher have priority over
                     // later ones.
                     if (input.buffer_size() != 0) {
-                        acceptedSymbol << input.remove_string_from_buffer();
-                        acceptedToken = cat.get_token();
+                        const auto optString {input.remove_string_from_buffer()};
+                        if (!optString) {
+                            get_logger()->error("scanner::get_next_symbol: Failed to get buffered string.");
+                            return;
+                        }
 
-                        if (acceptedToken == ScanToken::NONE) {
-                            spdlog::error("scanner::get_next_symbol: A token value of NONE should "
-                                          "never need to be touched");
+                        acceptedSymbol << *optString;
+                        acceptedToken = matcher.get_token();
+
+                        if (acceptedToken == INVALID_TOKEN) {
+                            get_logger()->error("scanner::get_next_symbol: A token value of NONE should "
+                                                "never need to be touched");
                         }
                     }
                     break;
 
                 case StepResult::NO_MATCH:
+                    // As long as we are not in an ERROR state keep on searching for an accepted state
                     cont = true;
                     break;
 
@@ -67,15 +86,26 @@ namespace sk::scanner {
         } while (cont);
 
 
+        // No token found
         if (!acceptedToken) {
-            spdlog::debug("scanner::get_next_symbol: No symbol found");
+            get_logger()->debug("scanner::get_next_symbol: No symbol found");
             return std::nullopt;
         }
 
-        spdlog::debug("scanner::get_next_symbol: New symbol {}: '{}'", *acceptedToken, acceptedSymbol.str());
+        // Resolve the received token ID
+        const auto optToken {tokenMap_.resolve_token_id(*acceptedToken)};
+        if (!optToken) {
+            get_logger()->error("scanner::get_next_symbol: Could not resolve token ID '{}'", *acceptedToken);
+            return std::nullopt;
+        }
+
+        get_logger()->debug("scanner::get_next_symbol: New symbol {}: '{}'", *optToken, acceptedSymbol.str());
+
+
         return Symbol {
-            .token = *acceptedToken,       //
-            .str   = acceptedSymbol.str()  //
+            .tokenId  = *acceptedToken,       //
+            .tokenStr = *optToken,            //
+            .str      = acceptedSymbol.str()  //
         };
     }
 
@@ -84,19 +114,46 @@ namespace sk::scanner {
         buffered_input input(in_stream);
         std::vector<Symbol> symbols;
 
+        // Reset state
+        line_ = 1;
+        col_  = 1;
+
 
         while (true) {
+            // Try to find the next symbol
             const auto optSymbol {get_next_symbol(input)};
+
+            // If none is found we are either at the EOF (and return all symbols found),
+            // or the input did not match any known symbol (in which case we return an error)
             if (!optSymbol) {
-                if (input.eof()) {
+                if (input.eof() && input.buffer_size() == 0) {
                     return symbols;
                 } else {
-                    return BadScanResult {};
+                    BadScanResult result {.line = line_, .col = col_, .str = {}};
+                    const auto optString {input.remove_string_from_buffer()};
+                    if (optString) {
+                        result.str = *optString;
+                    } else {
+                        get_logger()->error("scanner::scan: Failed to get unmatched symbol.");
+                    }
+                    return result;
                 }
             }
 
+            // Store symbol and prepare the buffer for the next run
             symbols.push_back(*optSymbol);
             input.putback_buffer();
+
+
+            // Advance position counters for better error handling
+            std::for_each(std::cbegin(optSymbol->str), std::cend(optSymbol->str), [&](const char c) {
+                if (c == '\n') {
+                    ++line_;
+                    col_ = 1;
+                } else {
+                    ++col_;
+                }
+            });
         }
     }
 

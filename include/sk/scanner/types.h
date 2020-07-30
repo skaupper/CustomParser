@@ -8,13 +8,6 @@
 
 namespace sk::scanner::types {
 
-    enum class ScanToken : int {
-        NONE,       //
-        NUMBER,     //
-        FLOAT,      //
-        WHITESPACE  //
-    };
-
     enum class StepResult {
         ERROR,     //
         NO_MATCH,  //
@@ -22,14 +15,24 @@ namespace sk::scanner::types {
     };
 
 
+    using TokenId = size_t;
+    constexpr TokenId INVALID_TOKEN {0};
+
     struct Symbol {
-        ScanToken token;
+        TokenId tokenId;
+        std::string tokenStr;
         std::string str {};
+    };
+
+    struct ScanError {
+        size_t line;
+        size_t col;
+        std::string str;
     };
 
 
     using GoodScanResult = std::vector<Symbol>;
-    using BadScanResult  = std::monostate;
+    using BadScanResult  = ScanError;
     using ScanResult     = std::variant<GoodScanResult, BadScanResult>;
 
 }  // namespace sk::scanner::types

@@ -1,6 +1,6 @@
 #include "sk/scanner/matchers/whitespace_matcher.h"
-
-#include <spdlog/spdlog.h>
+#include "sk/scanner/logger.h"
+#include "sk/scanner/scanner.h"
 
 
 static bool is_whitespace(int c) {
@@ -17,15 +17,18 @@ static bool is_whitespace(int c) {
 
 
 namespace sk::scanner::matchers {
+    using namespace sk::scanner;
     using namespace sk::scanner::types;
 
+
+    void whitespace_matcher::init(token_map &tokenMap) { token_ = tokenMap.add_token("WHITESPACE"); }
 
     StepResult whitespace_matcher::step(int c) {
         switch (state) {
         case State::INIT:
         case State::WS:
             if (is_whitespace(c)) {
-                spdlog::debug("whitespace_matcher::step: WS, {}", c);
+                get_logger()->debug("whitespace_matcher::step: WS, {}", c);
                 state = State::WS;
                 return StepResult::MATCH;
             }
@@ -35,7 +38,7 @@ namespace sk::scanner::matchers {
             break;
         }
 
-        spdlog::debug("whitespace_matcher::step: ERROR, {}", c);
+        get_logger()->debug("whitespace_matcher::step: ERROR, {}", c);
         state = State::ERROR;
         return StepResult::ERROR;
     }

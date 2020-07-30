@@ -1,11 +1,11 @@
 #include "sk/utils/buffered_input.h"
-
-#include <spdlog/spdlog.h>
+#include "sk/utils/logger.h"
 
 
 namespace sk::utils {
 
     namespace detail {
+
         std::streamsize string_stream::size() const { return size_; }
 
 
@@ -15,8 +15,8 @@ namespace sk::utils {
             }
 
             if (size() < amount) {
-                spdlog::error("buffered_input::string_stream::get_n_chars: More characters requested than the stream "
-                              "has in it.");
+                get_logger()->error("buffered_input::string_stream::get_string: More characters requested "
+                                    "than the stream has in it.");
                 return std::nullopt;
             }
 
@@ -25,11 +25,12 @@ namespace sk::utils {
 
             if (!ss_.read(std::data(res), amount)) {
                 flush();
-                spdlog::error("buffered_input::string_stream::get_n_chars: Unable to receive character string stream.");
+                get_logger()->error("buffered_input::string_stream::get_string: Unable to receive "
+                                    "character string stream.");
                 return std::nullopt;
             }
 
-            spdlog::debug("buffered_input::string_stream::get_n_chars: '{}'", res);
+            get_logger()->debug("buffered_input::string_stream::get_string: '{}'", res);
 
             size_ -= amount;
             return res;
@@ -37,16 +38,16 @@ namespace sk::utils {
 
         std::optional<char> string_stream::get_char() {
             if (size() == 0) {
-                spdlog::error("buffered_input::string_stream::get_char: Unable to receive a character from the "
-                              "string stream since its size == 0.");
+                get_logger()->error("buffered_input::string_stream::get_char: Unable to receive a character from the "
+                                    "string stream since its size == 0.");
                 return std::nullopt;
             }
 
             char c;
             if (!ss_.get(c)) {
                 flush();
-                spdlog::error("buffered_input::string_stream::get_char: Unable to receive character string stream "
-                              "although its size != 0.");
+                get_logger()->error("buffered_input::string_stream::get_char: Unable to receive character string "
+                                    "stream although its size != 0.");
                 return std::nullopt;
             }
 
@@ -88,8 +89,8 @@ namespace sk::utils {
             if (optChar) {
                 alreadyReadBuffer_->put_char(*optChar);
             } else {
-                spdlog::error("buffered_input::get_char: putbackBuffer_ did not return a character although its "
-                              "size is != 0.");
+                get_logger()->error("buffered_input::get_char: putbackBuffer_ did not return a character although its "
+                                    "size is != 0.");
             }
             return *optChar;
         }
@@ -97,11 +98,11 @@ namespace sk::utils {
         char c;
         if (!input_.get(c)) {
             if (input_.eof()) {
-                spdlog::debug("buffered_input::get_char: EOF");
+                get_logger()->debug("buffered_input::get_char: EOF");
                 return EOF;
             }
 
-            spdlog::error("buffered_input::get_char: Unable to receive character from input stream.");
+            get_logger()->error("buffered_input::get_char: Unable to receive character from input stream.");
             return std::nullopt;
         }
 
@@ -119,8 +120,8 @@ namespace sk::utils {
             alreadyReadBuffer_->put_string(*s);
         } else {
             putbackBuffer_->flush();
-            spdlog::error("buffered_input::flush: Could not receive string of putbackBuffer_. "
-                          "Some data may be lost.");
+            get_logger()->error("buffered_input::flush: Could not receive string of putbackBuffer_. "
+                                "Some data may be lost.");
         }
 
         std::swap(alreadyReadBuffer_, putbackBuffer_);
